@@ -169,11 +169,13 @@ function searchFilter() {
       new MutationObserver((mutations) => {
         const firstMutation = mutations[0];
 
-        if (firstMutation.addedNodes === undefined) {
+        if (firstMutation.addedNodes === undefined || firstMutation.addedNodes[0] === undefined) {
           return;
         }
 
-        if (!firstMutation.addedNodes[0].classList.contains("list-item")) {
+        const mutatedNodeClassList = firstMutation.addedNodes[0].classList;
+
+        if (!mutatedNodeClassList.contains("list-table") && !mutatedNodeClassList.contains("list-item")) {
           return;
         }
 
