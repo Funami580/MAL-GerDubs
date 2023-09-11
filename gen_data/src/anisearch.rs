@@ -56,7 +56,8 @@ impl AnisearchClient {
             }
         }
 
-        let mut too_many_requests_count: u64 = 0;
+        const MAX_BACKOFF_SECONDS: u64 = 300; // max. 5 min backoff
+        let mut backoff_count: u64 = 0;
 
         let body = loop {
             let response = self.client.get(anisearch_url).send();
@@ -70,8 +71,8 @@ impl AnisearchClient {
                         }
                     },
                     StatusCode::TOO_MANY_REQUESTS => {
-                        too_many_requests_count += 1;
-                        wait_request_failed("Too many requests", 60 * too_many_requests_count);
+                        backoff_count += 1;
+                        wait_request_failed("Too many requests", (60 * backoff_count).min(MAX_BACKOFF_SECONDS));
                         continue;
                     }
                     err if err.is_server_error() => {
@@ -84,7 +85,7 @@ impl AnisearchClient {
                     }
                 },
                 Err(_) => {
-                    wait_request_failed("Request failed", 10);
+                    wait_request_failed("Request failed", (10 * backoff_count).min(MAX_BACKOFF_SECONDS));
                     continue;
                 }
             };
