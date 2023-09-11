@@ -10,7 +10,7 @@ struct Output<'a> {
     incomplete: &'a [u64],
 }
 
-pub fn write_output(path: &Path, dubbed_mal_ids: &[u64]) {
+pub fn write_output(path: &Path, dubbed_mal_ids: &[u64], incomplete_mal_ids: &[u64]) {
     std::fs::create_dir_all(path.parent().unwrap()).ok();
 
     let file = OpenOptions::new()
@@ -23,7 +23,7 @@ pub fn write_output(path: &Path, dubbed_mal_ids: &[u64]) {
 
     let output = Output {
         dubbed: dubbed_mal_ids,
-        incomplete: &[],
+        incomplete: incomplete_mal_ids,
     };
     serde_json::to_writer_pretty(&mut writer, &output).expect("failed to write to output");
 

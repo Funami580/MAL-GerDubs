@@ -25,17 +25,23 @@ fn main() {
 
     // Read database
     let db_path = Path::new("../anime-offline-database/anime-offline-database-minified.json");
+    let output_path = Path::new("../data/dubInfo.json");
     let root = database::read_database(db_path);
     assert!(root.data.len() > 0);
 
     // Process...
     let mut anisearch_map = get_anisearch_map(&root);
     let mut dubbed_mal_ids: HashSet<u64> = HashSet::new();
-    let dubbed_anime_fetcher = get_dubbed_anime_fetcher();
+    let mut dubbed_anisearch_urls: HashSet<String> = HashSet::new();
+    let mut dub_incomplete_mal_ids: HashSet<u64> = HashSet::new();
+
+    let client = get_default_client();
+    let dubbed_anime_fetcher = get_dubbed_anime_fetcher(&client);
 
     log::info!("Checking dubbed anime page 1/??...");
     let page1_results = dubbed_anime_fetcher(&get_dubbed_anime_page_url(1)).unwrap();
-    process_page(&mut dubbed_mal_ids, &mut anisearch_map, &page1_results);
+    process_dubbed_page(&mut dubbed_mal_ids, &mut anisearch_map, &page1_results);
+    dubbed_anisearch_urls.extend(page1_results.anisearch_urls.into_vec().into_iter());
 
     let progress_bar = {
         let pb = indicatif::ProgressBar::new(page1_results.total_pages);
@@ -54,24 +60,67 @@ fn main() {
     for page in 2..=page1_results.total_pages {
         log::info!("Checking dubbed anime page {}/{}...", page, page1_results.total_pages);
         let page_x_results = dubbed_anime_fetcher(&get_dubbed_anime_page_url(page)).unwrap();
-        process_page(&mut dubbed_mal_ids, &mut anisearch_map, &page_x_results);
+        process_dubbed_page(&mut dubbed_mal_ids, &mut anisearch_map, &page_x_results);
+        dubbed_anisearch_urls.extend(page_x_results.anisearch_urls.into_vec().into_iter());
         progress_bar.inc(1);
         std::thread::sleep(Duration::from_secs(1));
     }
 
-    // Write dubbed MyAnimeList ids
+    // Save dubbed MyAnimeList ids as temporary result
     let mut sorted_dubbed_ids: Vec<u64> = dubbed_mal_ids.into_iter().collect();
     sorted_dubbed_ids.sort_unstable();
 
-    let output_path = Path::new("../data/dubInfo.json");
-    output::write_output(output_path, &sorted_dubbed_ids);
+    output::write_output(output_path, &sorted_dubbed_ids, &[]);
+
+    // Check for incomplete dubs
+    let dub_complete_checker = get_dub_complete_checker(&client);
+    progress_bar.set_position(0);
+    progress_bar.set_length(dubbed_anisearch_urls.len() as u64);
+
+    for (index, dubbed_anisearch_url) in dubbed_anisearch_urls.iter().enumerate() {
+        log::info!(
+            "Checking if dub is complete {}/{}: {}",
+            index + 1,
+            dubbed_anisearch_urls.len(),
+            dubbed_anisearch_url
+        );
+
+        match dub_complete_checker(dubbed_anisearch_url) {
+            Ok(true) => {}
+            Ok(false) => {
+                if let Some(anime_entry_refcell) = anisearch_map.get(dubbed_anisearch_url.deref()) {
+                    let mal_ids = &anime_entry_refcell.borrow().mal_ids;
+                    dub_incomplete_mal_ids.extend(mal_ids.iter());
+                    log::info!("Dub is incomplete: {}", dubbed_anisearch_url);
+                }
+            }
+            Err(_) => {
+                // I prefer to treat it as incomplete, if it cannot verify the completeness
+                // Happens with: https://www.anisearch.com/anime/18285
+                if let Some(anime_entry_refcell) = anisearch_map.get(dubbed_anisearch_url.deref()) {
+                    let mal_ids = &anime_entry_refcell.borrow().mal_ids;
+                    dub_incomplete_mal_ids.extend(mal_ids.iter());
+                    log::error!("Failed to check if the dub is complete for: {}", dubbed_anisearch_url);
+                }
+            }
+        };
+
+        progress_bar.inc(1);
+        std::thread::sleep(Duration::from_secs(1));
+    }
+
+    // Save dubbed MyAnimeList ids, with incomplete information
+    let mut sorted_incomplete_ids: Vec<u64> = dub_incomplete_mal_ids.into_iter().collect();
+    sorted_incomplete_ids.sort_unstable();
+
+    output::write_output(output_path, &sorted_dubbed_ids, &sorted_incomplete_ids);
 
     // Clean up
     progress_bar.finish();
     multi.remove(&progress_bar);
 }
 
-fn process_page(
+fn process_dubbed_page(
     dubbed_mal_ids: &mut HashSet<u64>,
     anisearch_map: &mut HashMap<&str, Rc<RefCell<AnimeEntry>>>,
     dubbed_anime: &DubbedAnime,
@@ -162,18 +211,14 @@ fn get_dubbed_anime_page_url(page: u64) -> String {
     format!("https://www.anisearch.com/anime/index/page-{page}?synchro=de&sort=title&order=asc&view=2&limit=100")
 }
 
-fn get_dubbed_anime_fetcher() -> impl Fn(&str) -> Result<DubbedAnime, ()> {
-    let client = reqwest::blocking::Client::builder()
-        .user_agent(USER_AGENT)
-        .timeout(Duration::from_secs(3))
-        .connect_timeout(Duration::from_secs(3))
-        .build()
-        .unwrap();
+fn get_dubbed_anime_fetcher(
+    client: &reqwest::blocking::Client,
+) -> impl for<'b> Fn(&'b str) -> Result<DubbedAnime, ()> + '_ {
     let a_selector = scraper::Selector::parse(r#"th > a[lang]"#).unwrap();
     let page_info_selector = scraper::Selector::parse(r#"div.pagenav-info"#).unwrap();
 
     move |anisearch_url| {
-        let document = get_anisearch_page(&client, anisearch_url)?;
+        let document = get_anisearch_page(client, anisearch_url)?;
         let total_pages = document
             .select(&page_info_selector)
             .next()
@@ -289,6 +334,32 @@ fn format_anisearch_link(url: &str) -> Result<String, ()> {
     }
 }
 
+fn get_dub_complete_checker(client: &reqwest::blocking::Client) -> impl for<'b> Fn(&'b str) -> Result<bool, ()> + '_ {
+    let status_selector = scraper::Selector::parse(r#"div.title[lang="de"] + div.status"#).unwrap();
+
+    move |anisearch_url| {
+        let document = get_anisearch_page(client, anisearch_url)?;
+
+        Ok(document
+            .select(&status_selector)
+            .next()
+            .ok_or(())?
+            .text()
+            .collect::<String>()
+            .to_ascii_lowercase()
+            .contains("completed"))
+    }
+}
+
+fn get_default_client() -> reqwest::blocking::Client {
+    reqwest::blocking::Client::builder()
+        .user_agent(USER_AGENT)
+        .timeout(Duration::from_secs(3))
+        .connect_timeout(Duration::from_secs(3))
+        .build()
+        .unwrap()
+}
+
 #[test]
 fn test_format_anisearch_link() {
     assert_eq!(
@@ -300,4 +371,13 @@ fn test_format_anisearch_link() {
 #[test]
 fn test_parse_mal_id() {
     assert_eq!(mal_parse_id("https://myanimelist.net/anime/1535"), Some(1535));
+}
+
+#[test]
+fn test_is_dub_complete() {
+    let client = get_default_client();
+    let dub_complete_checker = get_dub_complete_checker(&client);
+
+    assert!(dub_complete_checker("https://anisearch.com/anime/15141").unwrap());
+    assert!(!dub_complete_checker("https://anisearch.de/anime/14").unwrap());
 }
