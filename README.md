@@ -26,18 +26,15 @@ This project is basically a copy of the English version with some slight adjustm
 [Click here to install](https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/mal-dubs.user.js)
 
 ## Update Data
-**First time**
+Clone the repository, if you have not already:
 ```
-git clone --depth 1 --recursive https://github.com/Funami580/MAL-GerDubs.git
-cd MAL-GerDubs/gen_data
-cargo build --release
-./target/release/mal_gerdubs
+git clone --depth 1 https://github.com/Funami580/MAL-GerDubs.git
 ```
 
-**Otherwise**
+Otherwise, follow the normal procedure:
 ```
 cd MAL-GerDubs
-git submodule update --init --recursive
+git submodule update --init --recursive --remote
 cd gen_data
 cargo build --release
 ./target/release/mal_gerdubs
