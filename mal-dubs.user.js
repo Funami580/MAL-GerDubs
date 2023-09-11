@@ -132,7 +132,7 @@ function updateIds() {
   const numbers = document.querySelectorAll('#list-container>div.list-block>div>table>tbody.list-item>tr.list-table-data>td.data.number');
   let currNumber = 1;
   numbers.forEach((e) => {
-    if (!e.parentNode.parentNode.classList.contains('hidden')) {
+    if (!!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)) {
       e.innerHTML = "" + currNumber;
       currNumber += 1;
     }
