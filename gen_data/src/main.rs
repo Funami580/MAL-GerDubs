@@ -334,6 +334,8 @@ fn format_anisearch_link(url: &str) -> Result<String, ()> {
     }
 }
 
+// Info: status "Upcoming" not handled
+// TODO: https://www.anisearch.com/anime/2852 "Licensed, but never released" not handled
 fn get_dub_complete_checker(client: &reqwest::blocking::Client) -> impl for<'b> Fn(&'b str) -> Result<bool, ()> + '_ {
     let status_selector = scraper::Selector::parse(r#"div.title[lang="de"] + div.status"#).unwrap();
 
