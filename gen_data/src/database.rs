@@ -12,7 +12,7 @@ pub type Url = String;
 pub struct Root {
     pub license: License,
     pub repository: Url,
-    pub last_update: String, // TODO
+    pub last_update: String,
     pub data: Box<[Anime]>,
 }
 
