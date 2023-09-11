@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MAL (MyAnimeList) German Dubs
 // @namespace    https://github.com/Funami580/MAL-GerDubs
-// @version      0.9.42
+// @version      0.9.43
 // @description  Labels German dubbed titles on MyAnimeList.net and adds dub only filtering
 // @author       MAL Dubs
 // @supportURL   https://github.com/Funami580/MAL-GerDubs/issues
