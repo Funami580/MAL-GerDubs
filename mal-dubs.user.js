@@ -1,12 +1,12 @@
 // ==UserScript==
-// @name         MAL (MyAnimeList) Dubs
-// @namespace    https://github.com/MAL-Dubs
+// @name         MAL (MyAnimeList) German Dubs
+// @namespace    https://github.com/Funami580/MAL-GerDubs
 // @version      0.9.41
-// @description  Labels English dubbed titles on MyAnimeList.net and adds dub only filtering
+// @description  Labels German dubbed titles on MyAnimeList.net and adds dub only filtering
 // @author       MAL Dubs
-// @supportURL   https://github.com/MAL-Dubs/MAL-Dubs/issues
-// @downloadURL  https://github.com/MAL-Dubs/MAL-Dubs/raw/main/mal-dubs.user.js
-// @updateURL    https://github.com/MAL-Dubs/MAL-Dubs/raw/main/mal-dubs.user.js
+// @supportURL   https://github.com/Funami580/MAL-GerDubs/issues
+// @downloadURL  https://github.com/Funami580/MAL-GerDubs/raw/main/mal-dubs.user.js
+// @updateURL    https://github.com/Funami580/MAL-GerDubs/raw/main/mal-dubs.user.js
 // @match        https://myanimelist.net/*
 // @iconURL      https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/icon.png
 // @license      GNU AGPLv3; https://www.gnu.org/licenses/agpl-3.0.html
@@ -25,7 +25,7 @@ const dubbedLinks = document.querySelectorAll("p.title-text>a,p.data a.title,.co
 const dubbedThumbs = 'div.auto-recommendations>div.items>a.item,div.recommendations div.items>a.item,div#widget-seasonal-video li.btn-anime>a.link,div#anime_recommendation li.btn-anime.auto>a.link,.js-seasonal-anime>.image>a:nth-child(1),#anime_favorites>.fav-slide-outer>ul>li>a';
 const animeURLregex = /^(https?:\/\/myanimelist\.net)?\/?anime(\/|\.php\?id=)(\d+)\/?.*$/;
 const filterableURLregex = /.*\/(((anime\.php\?(?!id).+|topanime\.php.*))|anime\/(genre|producer|season)\/?.*)/;
-const IDURL = 'https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json';
+const IDURL = 'https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/data/dubInfo.json';
 
 let dubbedIDs = JSON.parse(localStorage.getItem('dubIDs'));
 let incompleteDubs = JSON.parse(localStorage.getItem('incompleteIDs'));
@@ -208,7 +208,7 @@ function placeHeaderMenu() {
   const borderDiv = document.createElement('div');
   menuContainer.id = 'dubmenu';
   menuContainer.classList.add('header-menu-unit', 'header-dub');
-  menuContainer.innerHTML += '<a id="menu-toggle" title="MAL-Dubs" tabindex="0" class="header-dub-button text1"><span id="menu-toggle" class="dub-icon icon"></span></a><div id="dub-dropdown"><ul><li><a id="theme-toggle" href="#"><i class="dub-icon mr6"></i>Switch Style</a></li><li><a href="https://myanimelist.net/forum/?topicid=1692966"><i class="fa-solid fa-calendar-clock mr6"></i>Upcoming Dubs</a></li><li><a href="https://myanimelist.net/forum/?action=message&amp;topic_id=1952777&amp;action=message"><i class="fa-solid fa-comment-dots mr6"></i>Send Feedback</a></li><li><a href="https://github.com/MAL-Dubs/MAL-Dubs/issues/new/choose" target="_blank" rel="noreferrer"><i class="fa-brands fa-github mr6"></i>Report an Issue</a></li><li><a href="https://discord.gg/wMfD2RM7Vt" target="_blank" rel="noreferrer"><i class="fa-brands fa-discord mr6"></i>Discord</a></li><li><a href="https://ko-fi.com/maldubs" target="_blank" rel="noreferrer"><i class="fa-solid fa-circle-dollar-to-slot mr6"></i>Donate</a></li></ul></div>';
+  menuContainer.innerHTML += '<a id="menu-toggle" title="MAL-Dubs" tabindex="0" class="header-dub-button text1"><span id="menu-toggle" class="dub-icon icon"></span></a><div id="dub-dropdown"><ul><li><a id="theme-toggle" href="#"><i class="dub-icon mr6"></i>Switch Style</a></li><li><a href="https://myanimelist.net/forum/?action=message&amp;topic_id=1952777&amp;action=message"><i class="fa-solid fa-comment-dots mr6"></i>Send Feedback</a></li><li><a href="https://github.com/MAL-Dubs/MAL-Dubs/issues/new/choose" target="_blank" rel="noreferrer"><i class="fa-brands fa-github mr6"></i>Report an Issue</a></li><li><a href="https://discord.gg/wMfD2RM7Vt" target="_blank" rel="noreferrer"><i class="fa-brands fa-discord mr6"></i>Discord</a></li><li><a href="https://ko-fi.com/maldubs" target="_blank" rel="noreferrer"><i class="fa-solid fa-circle-dollar-to-slot mr6"></i>Donate</a></li></ul></div>';
   borderDiv.classList.add('border');
   if (document.body.contains(document.querySelector('.header-profile'))) {
     document.querySelector('#header-menu>div.header-profile').before(menuContainer, borderDiv);
