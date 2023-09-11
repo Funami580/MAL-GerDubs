@@ -166,7 +166,17 @@ function searchFilter() {
   if (document.location.href.match(/.*\/animelist\/.*/)) {
     const listContainer = document.getElementById('list-container');
     if (listContainer) {
-      new MutationObserver(() => {
+      new MutationObserver((mutations) => {
+        const firstMutation = mutations[0];
+
+        if (firstMutation.addedNodes === undefined) {
+          return;
+        }
+
+        if (!firstMutation.addedNodes[0].classList.contains("list-item")) {
+          return;
+        }
+
         labelList();
         undubbed = document.querySelectorAll('[title="Undubbed"]');
         if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
