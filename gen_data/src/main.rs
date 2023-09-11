@@ -354,8 +354,8 @@ fn get_dub_complete_checker(client: &reqwest::blocking::Client) -> impl for<'b> 
 fn get_default_client() -> reqwest::blocking::Client {
     reqwest::blocking::Client::builder()
         .user_agent(USER_AGENT)
-        .timeout(Duration::from_secs(3))
-        .connect_timeout(Duration::from_secs(3))
+        .timeout(Duration::from_secs(20))
+        .connect_timeout(Duration::from_secs(20))
         .build()
         .unwrap()
 }
