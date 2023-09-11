@@ -108,6 +108,8 @@ function hideUndubbed(links) {
       e.parentNode.parentNode.parentNode.classList.add('hidden');
     } else if (document.querySelector('div.list.js-categories-seasonal')) {
       e.parentNode.parentNode.parentNode.classList.add('hidden');
+    } else if (document.location.href.match(/.*\/animelist\/.*/)) {
+      e.parentNode.parentNode.parentNode.classList.add('hidden');
     } else { e.parentNode.parentNode.classList.add('hidden'); }
   });
 }
@@ -120,13 +122,15 @@ function showUndubbed(links) {
       e.parentNode.parentNode.parentNode.classList.remove('hidden');
     } else if (document.querySelector('div.list.js-categories-seasonal')) {
       e.parentNode.parentNode.parentNode.classList.remove('hidden');
+    } else if (document.location.href.match(/.*\/animelist\/.*/)) {
+      e.parentNode.parentNode.parentNode.classList.remove('hidden');
     } else { e.parentNode.parentNode.classList.remove('hidden'); }
   });
 }
 
 function searchFilter() {
-  const undubbed = document.querySelectorAll('[title="Undubbed"]');
-  const filterTarget = document.querySelector('.js-search-filter-block>div.fl-r.di-ib.mt4.mr12,div.horiznav-nav-seasonal>span[data-id="sort"],h2.top-rank-header2>span.fs10.fw-n.ff-Verdana.di-ib.ml16,.normal_header.js-search-filter-block>.di-ib,.normal_header>div.fl-r.di-ib.fs11.fw-n');
+  let undubbed = document.querySelectorAll('[title="Undubbed"]');
+  const filterTarget = document.querySelector('.js-search-filter-block>div.fl-r.di-ib.mt4.mr12,div.horiznav-nav-seasonal>span[data-id="sort"],h2.top-rank-header2>span.fs10.fw-n.ff-Verdana.di-ib.ml16,.normal_header.js-search-filter-block>.di-ib,.normal_header>div.fl-r.di-ib.fs11.fw-n,#show-stats-button');
   const filterCheckbox = document.createElement('input');
   const label = document.createElement('label');
   if (filterTarget !== null) {
@@ -135,7 +139,13 @@ function searchFilter() {
     label.setAttribute('for', 'undubbed-filter');
     label.className = 'fs11 fl-r btn-show-undubbed mr12 fw-n fn-grey2';
     label.appendChild(document.createTextNode('Dubs Only'));
-    filterTarget.after(filterCheckbox);
+    if (filterTarget.id === "show-stats-button") {
+      const color = window.getComputedStyle(filterTarget).color;
+      label.setAttribute("style", "color: " + color);
+      filterTarget.before(filterCheckbox);
+    } else {
+      filterTarget.after(filterCheckbox);
+    }
     filterCheckbox.after(label);
   }
 
@@ -151,6 +161,20 @@ function searchFilter() {
   if (filter) {
     filterCheckbox.checked = filterUndubbed;
     if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
+  }
+
+  if (document.location.href.match(/.*\/animelist\/.*/)) {
+    const listContainer = document.getElementById('list-container');
+    if (listContainer) {
+      new MutationObserver(() => {
+        labelList();
+        undubbed = document.querySelectorAll('[title="Undubbed"]');
+        if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
+        if (filterCheckbox.checked === false) { showUndubbed(undubbed); }
+      }).observe(listContainer, {
+        childList: true, subtree: true,
+      });
+    }
   }
 
   filterCheckbox.addEventListener('change', () => {
@@ -232,10 +256,6 @@ function processList() {
   const listContainer = document.getElementById('list-container');
   if (!listContainer) {
     labelList();
-  } else {
-    new MutationObserver(() => labelList()).observe(listContainer, {
-      childList: true, subtree: true,
-    });
   }
 }
 
@@ -246,6 +266,7 @@ function processSite() {
 
 function onComplete() {
   if (document.location.href.match(/.*\/animelist\/.*/)) {
+    searchFilter();
     processList();
   } else {
     processSite();
