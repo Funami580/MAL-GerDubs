@@ -1,13 +1,13 @@
-# MAL (MyAnimeList) Dubs
-[![Install with Tampermonkey](https://img.shields.io/badge/Install%20directly%20with-Tampermonkey-00485b?logo=tampermonkey)](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/mal-dubs.user.js)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/MAL-Dubs/MAL-Dubs?label=Version)](#mal-myanimelist-dubs)
-[![GitHub license](https://img.shields.io/github/license/mal-dubs/mal-dubs)](https://github.com/MAL-Dubs/MAL-Dubs/blob/main/LICENSE)
-[![Dub count](https://img.shields.io/badge/Dubs-4739-2e51a2?logo=myanimelist)](#mal-myanimelist-dubs)
-[![Discord](https://img.shields.io/discord/850163973080743967?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/wMfD2RM7Vt)
+# MAL (MyAnimeList) German Dubs
+[![Install with Tampermonkey](https://img.shields.io/badge/Install%20directly%20with-Tampermonkey-00485b?logo=tampermonkey)](https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/mal-dubs.user.js)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/Funami580/MAL-GerDubs?label=Version)](#mal-myanimelist-german-dubs)
+[![GitHub license](https://img.shields.io/github/license/Funami580/MAL-GerDubs)](https://github.com/Funami580/MAL-GerDubs/blob/main/LICENSE)
 
-MAL Dubs is a userscript which labels 4739 English dubbed titles on MyAnimeList.net and  adds a "Dub Only" filter to search, seasonal, company and top anime pages.
+MAL Dubs is a userscript which labels more than 2000 German dubbed titles on MyAnimeList.net and adds a "Dub Only" filter to search, seasonal, company, top anime pages and your personal anime list.
 
-Whether you watch dubs because you like to multitask while watching, because you have a visual impairment that makes subtitles difficult to read, or because you prefer hearing a performance in a language you speak, it can be hard to use MyAnimeList to find anime dubbed in English. This userscript fixes that problem.
+Whether you watch dubs because you like to multitask while watching, because you have a visual impairment that makes subtitles difficult to read, or because you prefer hearing a performance in a language you speak, it can be hard to use MyAnimeList to find anime dubbed in German. This userscript fixes that problem.
+
+This project is basically a copy of the English version with some slight adjustments: [MAL-Dubs](https://github.com/MAL-Dubs/MAL-Dubs)
 
 ![Look for the "D"](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/labels.png)
 ![Find just the dubs ☑](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/filter.png)
@@ -23,16 +23,30 @@ Whether you watch dubs because you like to multitask while watching, because you
 
 **Step 2: Install the script**
 
-[Click here to install](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/mal-dubs.user.js)
+[Click here to install](https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/mal-dubs.user.js)
 
-## Support this Project
+## Update Data
+**First time**
+```
+git clone --depth 1 --recursive https://github.com/Funami580/MAL-GerDubs.git
+cd MAL-GerDubs/gen_data
+cargo build --release
+./target/release/mal_gerdubs
+```
 
-I personally add each title whenever I see a new dub announcement. Your support will help me to keep you up to date!
+**Otherwise**
+```
+cd MAL-GerDubs
+git submodule update --init --recursive
+cd gen_data
+cargo build --release
+./target/release/mal_gerdubs
+```
+
+## Support the Parent Project
+
+Quote from [MAL-Dubs](https://github.com/MAL-Dubs/MAL-Dubs) (English version)
+
+> I personally add each title whenever I see a new dub announcement. Your support will help me to keep you up to date!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y21HXGO)
-
-## Join the Community
-
-If you love dubbed anime and want a place to chat about it:
-
-[![Anime Dub Club Discord Server](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/discord.svg)](https://discord.gg/wMfD2RM7Vt)
