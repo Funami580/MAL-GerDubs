@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MAL (MyAnimeList) German Dubs
 // @namespace    https://github.com/Funami580/MAL-GerDubs
-// @version      0.9.46
+// @version      0.9.47
 // @description  Labels German dubbed titles on MyAnimeList.net and adds dub only filtering
 // @author       MAL Dubs
 // @supportURL   https://github.com/Funami580/MAL-GerDubs/issues
@@ -25,6 +25,9 @@ const dubbedLinks = document.querySelectorAll("p.title-text>a,p.data a.title,.co
 const dubbedThumbs = 'div.auto-recommendations>div.items>a.item,div.recommendations div.items>a.item,div#widget-seasonal-video li.btn-anime>a.link,div#anime_recommendation li.btn-anime.auto>a.link,.js-seasonal-anime>.image>a:nth-child(1),#anime_favorites>.fav-slide-outer>ul>li>a';
 const animeURLregex = /^(https?:\/\/myanimelist\.net)?\/?anime(\/|\.php\?id=)(\d+)\/?.*$/;
 const filterableURLregex = /.*\/(((anime\.php\?(?!id).+|topanime\.php.*))|anime\/(genre|producer|season)\/?.*)/;
+const filterable = filterableURLregex.test(document.location.href);
+const searchURLregex = /.*\/((anime\.php\??(?!id).*)|anime\/genre\/?.*)/;
+const searchPage = searchURLregex.test(document.location.href);
 const IDURL = 'https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/data/dubInfo.json';
 
 let dubbedIDs = JSON.parse(localStorage.getItem('dubIDs'));
@@ -68,15 +71,15 @@ function labelThumbnails() {
   });
 }
 
-function quickAddSearch() {
-  const recEntries = document.querySelectorAll('.quickAdd-anime-result-unit>table>tbody>tr>td:nth-child(1)>a');
-  recEntries.forEach((e) => labelDub(e));
+function labelResults(selector) {
+  const results = document.querySelectorAll(selector);
+  results.forEach((e) => labelDub(e));
 }
 
-function quickAdd() {
-  const searchResults = document.getElementById('content');
-  new MutationObserver(() => quickAddSearch()).observe(searchResults, {
-    childList: true, subtree: true,
+function searchObserver(containerID, resultSelector) {
+  const searchContainer = document.getElementById(containerID);
+  new MutationObserver(() => labelResults(resultSelector)).observe(searchContainer, {
+    childList: true, subtree: true, attributes: true, attributeFilter: ['href'],
   });
 }
 
@@ -100,31 +103,25 @@ function animePages() {
   });
 }
 
-function hideUndubbed(links) {
-  links.forEach((e) => {
-    if (document.location.href.match(/.*\/topanime\.php.*/)) {
-      e.parentNode.parentNode.parentNode.parentNode.parentNode.classList.add('hidden');
-    } else if (document.location.href.match(/.*anime\.php\?.*q=.*/)) {
-      e.parentNode.parentNode.parentNode.classList.add('hidden');
-    } else if (document.querySelector('div.list.js-categories-seasonal')) {
-      e.parentNode.parentNode.parentNode.classList.add('hidden');
-    } else if (document.location.href.match(/.*\/animelist\/.*/)) {
-      e.parentNode.parentNode.parentNode.classList.add('hidden');
-    } else { e.parentNode.parentNode.classList.add('hidden'); }
-  });
+function seasonalCount() {
+  const titlesArray = [].slice.call(document.querySelectorAll('.seasonal-anime'));
+  const showingArray = titlesArray.filter((el) => getComputedStyle(el).display !== 'none');
+  const countDisplay = document.querySelector('.js-visible-anime-count');
+  countDisplay.textContent = `${showingArray.length}/${titlesArray.length}`;
 }
 
-function showUndubbed(links) {
-  links.forEach((e) => {
+function filterContainers() {
+  const undubbed = document.querySelectorAll('[title="Undubbed"]');
+  undubbed.forEach((e) => {
     if (document.location.href.match(/.*\/topanime\.php.*/)) {
-      e.parentNode.parentNode.parentNode.parentNode.parentNode.classList.remove('hidden');
+      e.parentNode.parentNode.parentNode.parentNode.parentNode.classList.add('noDub');
     } else if (document.location.href.match(/.*anime\.php\?.*q=.*/)) {
-      e.parentNode.parentNode.parentNode.classList.remove('hidden');
-    } else if (document.querySelector('div.list.js-categories-seasonal')) {
-      e.parentNode.parentNode.parentNode.classList.remove('hidden');
+      e.parentNode.parentNode.parentNode.classList.add('noDub');
     } else if (document.location.href.match(/.*\/animelist\/.*/)) {
-      e.parentNode.parentNode.parentNode.classList.remove('hidden');
-    } else { e.parentNode.parentNode.classList.remove('hidden'); }
+      e.parentNode.parentNode.parentNode.classList.add('noDub');
+    } else if (document.querySelector('div.list.js-categories-seasonal')) {
+      e.parentNode.parentNode.parentNode.classList.add('noDub');
+    } else { e.parentNode.parentNode.classList.add('noDub'); }
   });
 }
 
@@ -132,7 +129,7 @@ function updateIds() {
   const numbers = document.querySelectorAll('#list-container>div.list-block>div>table>tbody.list-item>tr.list-table-data>td.data.number');
   let currNumber = 1;
   numbers.forEach((e) => {
-    if (!!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)) {
+    if (e.offsetWidth || e.offsetHeight || e.getClientRects().length) {
       e.innerHTML = "" + currNumber;
       currNumber += 1;
     }
@@ -140,8 +137,8 @@ function updateIds() {
 }
 
 function searchFilter() {
-  let undubbed = document.querySelectorAll('[title="Undubbed"]');
-  const filterTarget = document.querySelector('.js-search-filter-block>div.fl-r.di-ib.mt4.mr12,div.horiznav-nav-seasonal>span[data-id="sort"],h2.top-rank-header2>span.fs10.fw-n.ff-Verdana.di-ib.ml16,.normal_header.js-search-filter-block>.di-ib,.normal_header>div.fl-r.di-ib.fs11.fw-n,#show-stats-button');
+  filterContainers();
+  const filterTarget = document.querySelector('.js-search-filter-block>div:last-of-type,div.horiznav-nav-seasonal>span.js-btn-show-sort:last-of-type,h2.top-rank-header2>span:last-of-type,.normal_header>div.view-style2:last-of-type,#show-stats-button');
   const filterCheckbox = document.createElement('input');
   const label = document.createElement('label');
   if (filterTarget !== null) {
@@ -149,12 +146,18 @@ function searchFilter() {
     filterCheckbox.id = 'undubbed-filter';
     label.setAttribute('for', 'undubbed-filter');
     label.className = 'fs11 fl-r btn-show-undubbed mr12 fw-n fn-grey2';
-    label.appendChild(document.createTextNode('Dubs Only'));
     if (filterTarget.id === "show-stats-button") {
+      label.className = label.className + " btn-show-undubbed-old";
+      label.appendChild(document.createTextNode('Dubs Only'));
       const color = window.getComputedStyle(filterTarget).color;
       label.setAttribute("style", "color: " + color);
       filterTarget.before(filterCheckbox);
     } else {
+      label.innerHTML = `
+      <i class="fa-regular fa-square fa-stack-2x"></i>
+      <i class="fa-solid fa-check fa-stack-1x"></i>
+      Dubs Only
+      `.trim();
       filterTarget.after(filterCheckbox);
     }
     filterCheckbox.after(label);
@@ -171,7 +174,7 @@ function searchFilter() {
 
   if (filter) {
     filterCheckbox.checked = filterUndubbed;
-    if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
+    if (filterCheckbox.checked === true) { document.body.classList.add('filterOn'); }
   }
 
   if (document.location.href.match(/.*\/animelist\/.*/)) {
@@ -195,9 +198,9 @@ function searchFilter() {
         }
 
         labelList();
-        undubbed = document.querySelectorAll('[title="Undubbed"]');
-        if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
-        if (filterCheckbox.checked === false) { showUndubbed(undubbed); }
+        filterContainers();
+        if (filterCheckbox.checked === true) { document.body.classList.add('filterOn'); }
+        if (filterCheckbox.checked === false) { document.body.classList.remove('filterOn'); }
         updateIds();
       }).observe(listContainer, {
         childList: true, subtree: true,
@@ -206,11 +209,12 @@ function searchFilter() {
   }
 
   filterCheckbox.addEventListener('change', () => {
-    if (filterCheckbox.checked === true) { hideUndubbed(undubbed); }
-    if (filterCheckbox.checked === false) { showUndubbed(undubbed); }
+    if (filterCheckbox.checked === true) { document.body.classList.add('filterOn'); }
+    if (filterCheckbox.checked === false) { document.body.classList.remove('filterOn'); }
     if (document.location.href.match(/.*\/animelist\/.*/)) {
       updateIds();
     }
+    if (document.location.href.match(/.*\/season\/?.*/)) { seasonalCount(); }
     localStorage.setItem('dubOnlySearch', filterCheckbox.checked);
   }, false);
 }
@@ -293,6 +297,7 @@ function processList() {
 function processSite() {
   labelThumbnails();
   dubbedLinks.forEach((e) => { labelDub(e); });
+  searchObserver('menu_right', '#top-search-bar>#topSearchResultList>div>div>a');
 }
 
 function onComplete() {
@@ -301,9 +306,14 @@ function onComplete() {
     processList();
   } else {
     processSite();
-    if (filterableURLregex.test(document.location.href)) { searchFilter(); }
+    if (filterable) { searchFilter(); }
+    if (searchPage) {
+      searchObserver('content', '#advancedsearch>div>#advancedSearchResultList>div>div>a')
+    }
     if (animeURLregex.test(document.location.href)) { animePages(); }
-    if (document.location.href.match(/https:\/\/myanimelist\.net\/addtolist\.php/)) { quickAdd(); }
+    if (document.location.href.match(/https:\/\/myanimelist\.net\/addtolist\.php/)) {
+      searchObserver('content', '.quickAdd-anime-result-unit>table>tbody>tr>td:nth-child(1)>a');
+    }
     placeHeaderMenu();
     setTimeout(() => labelThumbnails(), 400);
   }
