@@ -226,7 +226,7 @@ mod tests {
         );
         assert_eq!(
             anisearch_client
-                .get_dub_status("https://anisearch.de/anime/14")
+                .get_dub_status("https://anisearch.com/anime/14")
                 .unwrap(),
             DubStatus::Incomplete
         );
