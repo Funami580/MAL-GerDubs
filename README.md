@@ -9,8 +9,8 @@ Whether you watch dubs because you like to multitask while watching, because you
 
 This project is basically a copy of the English version with some slight adjustments: [MAL-Dubs](https://github.com/MAL-Dubs/MAL-Dubs)
 
-![Look for the "D"](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/labels.png)
-![Find just the dubs ☑](https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/filter.png)
+![Look for the "D"](https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/images/labels.png)
+![Find just the dubs ☑](https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/images/filter.png)
 
 ## Instructions
 

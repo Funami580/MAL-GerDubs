@@ -8,9 +8,9 @@
 // @downloadURL  https://github.com/Funami580/MAL-GerDubs/raw/main/mal-dubs.user.js
 // @updateURL    https://github.com/Funami580/MAL-GerDubs/raw/main/mal-dubs.user.js
 // @match        https://myanimelist.net/*
-// @iconURL      https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/images/icon.png
+// @iconURL      https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/images/icon.png
 // @license      GNU AGPLv3; https://www.gnu.org/licenses/agpl-3.0.html
-// @resource     CSS https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/css/style.css
+// @resource     CSS https://raw.githubusercontent.com/Funami580/MAL-GerDubs/main/css/style.css
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
@@ -263,7 +263,7 @@ function placeHeaderMenu() {
   const borderDiv = document.createElement('div');
   menuContainer.id = 'dubmenu';
   menuContainer.classList.add('header-menu-unit', 'header-dub');
-  menuContainer.innerHTML += '<a id="menu-toggle" title="MAL-Dubs" tabindex="0" class="header-dub-button text1"><span id="menu-toggle" class="dub-icon icon"></span></a><div id="dub-dropdown"><ul><li><a id="theme-toggle" href="#"><i class="dub-icon mr6"></i>Switch Style</a></li><li><a href="https://myanimelist.net/forum/?action=message&amp;topic_id=1952777&amp;action=message"><i class="fa-solid fa-comment-dots mr6"></i>Send Feedback</a></li><li><a href="https://github.com/MAL-Dubs/MAL-Dubs/issues/new/choose" target="_blank" rel="noreferrer"><i class="fa-brands fa-github mr6"></i>Report an Issue</a></li><li><a href="https://discord.gg/wMfD2RM7Vt" target="_blank" rel="noreferrer"><i class="fa-brands fa-discord mr6"></i>Discord</a></li><li><a href="https://ko-fi.com/maldubs" target="_blank" rel="noreferrer"><i class="fa-solid fa-circle-dollar-to-slot mr6"></i>Donate</a></li></ul></div>';
+  menuContainer.innerHTML += '<a id="menu-toggle" title="MAL-Dubs" tabindex="0" class="header-dub-button text1"><span id="menu-toggle" class="dub-icon icon"></span></a><div id="dub-dropdown"><ul><li><a id="theme-toggle" href="#"><i class="dub-icon mr6"></i>Switch Style</a></li><li><a href="https://github.com/Funami580/MAL-GerDubs/issues/new/choose" target="_blank" rel="noreferrer"><i class="fa-brands fa-github mr6"></i>Report an Issue</a></li><li><a href="https://discord.gg/wMfD2RM7Vt" target="_blank" rel="noreferrer"><i class="fa-brands fa-discord mr6"></i>Discord</a></li><li><a href="https://ko-fi.com/maldubs" target="_blank" rel="noreferrer"><i class="fa-solid fa-circle-dollar-to-slot mr6"></i>Donate</a></li></ul></div>';
   borderDiv.classList.add('border');
   if (document.body.contains(document.querySelector('.header-profile'))) {
     document.querySelector('#header-menu>div.header-profile').before(menuContainer, borderDiv);
