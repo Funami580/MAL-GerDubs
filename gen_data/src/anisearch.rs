@@ -203,6 +203,8 @@ impl AnisearchClient {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::AnisearchClient;
     use crate::anisearch::DubStatus;
 
@@ -219,26 +221,39 @@ mod tests {
         let anisearch_client = AnisearchClient::default();
 
         assert_eq!(
-            anisearch_client
-                .get_dub_status("https://anisearch.com/anime/15141")
-                .unwrap(),
-            DubStatus::Complete
+            anisearch_client.get_dub_status("https://anisearch.com/anime/15141"),
+            Ok(DubStatus::Complete)
         );
         assert_eq!(
-            anisearch_client
-                .get_dub_status("https://anisearch.com/anime/14")
-                .unwrap(),
-            DubStatus::Incomplete
+            anisearch_client.get_dub_status("https://anisearch.com/anime/14"),
+            Ok(DubStatus::Incomplete)
         );
         assert_eq!(
-            anisearch_client
-                .get_dub_status("https://anisearch.com/anime/2852")
-                .unwrap(),
-            DubStatus::NeverReleased
+            anisearch_client.get_dub_status("https://anisearch.com/anime/2852"),
+            Ok(DubStatus::NeverReleased)
         );
         assert!(matches!(
             anisearch_client.get_dub_status("https://anisearch.com/anime/18285"),
             Err(_)
         ));
+    }
+
+    #[test]
+    fn test_never_released() {
+        let never_released_anisearch_ids = [
+            4105, 2507, 1152, 2575, 5654, 2652, 3417, 2949, 2375, 329, 1467, 5734, 2626, 436, 409, 89, 2852, 3867,
+            4004, 3735, 4421, 6655, 6671, 7268, 10083, 11787, 12916, 14791,
+        ];
+
+        let anisearch_client = AnisearchClient::default();
+
+        for id in never_released_anisearch_ids {
+            assert_eq!(
+                anisearch_client.get_dub_status(&format!("https://anisearch.com/anime/{id}")),
+                Ok(DubStatus::NeverReleased),
+                "failed for id {id}"
+            );
+            std::thread::sleep(Duration::from_millis(500));
+        }
     }
 }
