@@ -6,14 +6,19 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use anisearch::{AnisearchClient, DubStatus, DubbedAnime};
+use clap::Parser;
 use database::Root;
 
 mod anisearch;
+mod cli;
 mod database;
 mod logger;
 mod output;
 
 fn main() {
+    // Parse arguments
+    let args = cli::Args::parse();
+
     // Set up logger
     let logger = logger::default_logger();
     let multi = indicatif::MultiProgress::new();
@@ -35,12 +40,12 @@ fn main() {
     let mut dub_incomplete_mal_ids: HashSet<u64> = HashSet::new();
     let mut dub_never_released_mal_ids: HashSet<u64> = HashSet::new();
 
-    let anisearch_client = AnisearchClient::default();
+    let anisearch_client = AnisearchClient::new(&args.language);
 
     log::info!("Checking dubbed anime page 1/??...");
     let page1_results = anisearch_client.get_dubbed_anime_list(1).unwrap();
     process_dubbed_page(&mut dubbed_mal_ids, &mut anisearch_map, &page1_results);
-    dubbed_anisearch_urls.extend(page1_results.anisearch_urls.into_vec().into_iter());
+    dubbed_anisearch_urls.extend(page1_results.anisearch_urls.into_vec());
 
     let progress_bar = {
         let pb = indicatif::ProgressBar::new(page1_results.total_pages);
@@ -141,7 +146,9 @@ fn process_dubbed_page(
     dubbed_anime: &DubbedAnime,
 ) {
     for anisearch_url in dubbed_anime.anisearch_urls.iter() {
-        let Some(anime_entry_refcell) = anisearch_map.get_mut(anisearch_url.deref()) else { continue; };
+        let Some(anime_entry_refcell) = anisearch_map.get_mut(anisearch_url.deref()) else {
+            continue;
+        };
         let mut anime_entry = anime_entry_refcell.borrow_mut();
 
         anime_entry.current_validations += 1;

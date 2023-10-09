@@ -3,11 +3,13 @@ use std::time::Duration;
 use reqwest::StatusCode;
 use scraper::Selector;
 
-const LANG: &str = "de";
+use crate::cli::Language;
+
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0";
 
-pub struct AnisearchClient {
+pub struct AnisearchClient<'a> {
     client: reqwest::blocking::Client,
+    lang: &'a str,
     selector_dubbed_anime_list_page_info: Selector,
     selector_dubbed_anime_list_anime_url: Selector,
     selector_anime_dub_info: Selector,
@@ -27,8 +29,9 @@ pub enum DubStatus {
     NeverReleased,
 }
 
-impl Default for AnisearchClient {
-    fn default() -> Self {
+impl AnisearchClient<'_> {
+    pub fn new(language: &Language) -> Self {
+        let anisearch_lang = language.get_anisearch_language();
         let client = reqwest::blocking::Client::builder()
             .user_agent(USER_AGENT)
             .timeout(Duration::from_secs(20))
@@ -38,16 +41,20 @@ impl Default for AnisearchClient {
 
         Self {
             client,
+            lang: anisearch_lang,
             selector_dubbed_anime_list_page_info: scraper::Selector::parse(r#"div.pagenav-info"#).unwrap(),
             selector_dubbed_anime_list_anime_url: scraper::Selector::parse(r#"th > a[lang]"#).unwrap(),
-            selector_anime_dub_info: scraper::Selector::parse(&format!(r#"div.title[lang="{LANG}"]"#)).unwrap(),
-            selector_anime_dub_status: scraper::Selector::parse(&format!(r#"div.title[lang="{LANG}"] + div.status"#))
+            selector_anime_dub_info: scraper::Selector::parse(&format!(r#"div.title[lang="{anisearch_lang}"]"#))
                 .unwrap(),
+            selector_anime_dub_status: scraper::Selector::parse(&format!(
+                r#"div.title[lang="{anisearch_lang}"] + div.status"#
+            ))
+            .unwrap(),
         }
     }
 }
 
-impl AnisearchClient {
+impl AnisearchClient<'_> {
     fn get_page(&self, anisearch_url: &str) -> Result<scraper::Html, ()> {
         fn wait_request_failed(message: &str, seconds: u64) {
             for second in (1..=seconds).rev() {
@@ -97,8 +104,9 @@ impl AnisearchClient {
     }
 
     pub fn get_dubbed_anime_list(&self, page: u64) -> Result<DubbedAnime, ()> {
+        let lang = self.lang;
         let url = format!(
-            "https://www.anisearch.com/anime/index/page-{page}?synchro={LANG}&sort=title&order=asc&view=2&limit=100"
+            "https://www.anisearch.com/anime/index/page-{page}?synchro={lang}&sort=title&order=asc&view=2&limit=100"
         );
         let document = self.get_page(&url)?;
         let total_pages = document
@@ -206,7 +214,7 @@ mod tests {
     use std::time::Duration;
 
     use super::AnisearchClient;
-    use crate::anisearch::DubStatus;
+    use crate::{anisearch::DubStatus, cli::Language};
 
     #[test]
     fn test_format_anisearch_url() {
@@ -218,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_get_dub_status() {
-        let anisearch_client = AnisearchClient::default();
+        let anisearch_client = AnisearchClient::new(&Language::German);
 
         assert_eq!(
             anisearch_client.get_dub_status("https://anisearch.com/anime/15141"),
@@ -245,7 +253,7 @@ mod tests {
             4004, 3735, 4421, 6655, 6671, 7268, 10083, 11787, 12916, 14791,
         ];
 
-        let anisearch_client = AnisearchClient::default();
+        let anisearch_client = AnisearchClient::new(&Language::German);
 
         for id in never_released_anisearch_ids {
             assert_eq!(
