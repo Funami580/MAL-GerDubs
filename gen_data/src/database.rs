@@ -28,7 +28,7 @@ pub struct Anime {
     pub picture: Url,
     pub thumbnail: Url,
     pub synonyms: Box<[String]>,
-    pub relations: Box<[Url]>,
+    pub related_anime: Box<[Url]>,
     pub tags: Box<[String]>,
 }
 
